@@ -1,4 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Task Manager App
+
+A dashboard app for pdpsipa team tasks. Features:
+
+- Dummy login (user: pdpsipa, pass: banteng1001#)
+- Dashboard with cards for task stats (done, progress, critical)
+- Paginated table for all tasks, colored by status
+- Insert task page
+- View task page
+- Uses SQLite3 for now (future: Supabase/Postgres)
+- Built with Next.js, Tailwind CSS, Lucide icons, shadcn/ui
+
+## Setup
+
+1. Run `npm install` to install dependencies
+2. **Important: Regenerate the Prisma client to recognize the Objective model:**
+   ```bash
+   npx prisma generate
+   ```
+3. Run database migrations (if needed):
+   ```bash
+   npx prisma migrate dev
+   ```
+4. Start dev server: `npm run dev`
+
+## Next Steps
+
+- Migrate from MySQL to Supabase/Postgres
+- Add authentication and user permissions
+- Implement task notifications and reminders
 
 ## Getting Started
 

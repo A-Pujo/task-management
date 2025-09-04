@@ -1,0 +1,40 @@
+// Prisma schema for MySQL
+// Save as prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Task {
+  id          Int         @id @default(autoincrement())
+  name        String
+  inputDate   DateTime
+  deadline    DateTime
+  status      String
+  description String?
+  logs        Log[]
+  objectives  Objective[]
+}
+
+model Log {
+  id      Int      @id @default(autoincrement())
+  task    Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId  Int
+  date    DateTime
+  message String
+}
+
+model Objective {
+  id          Int      @id @default(autoincrement())
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      Int
+  description String
+  status      String   @default("ONGOING")
+  createdDate DateTime @default(now())
+  updatedDate DateTime @updatedAt
+}
