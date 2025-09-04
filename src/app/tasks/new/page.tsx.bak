@@ -1,7 +1,17 @@
 "use client";
-import { useState, useEffect } from "react";
+import {   // Initialize database on component load
+  useEffect(() => {
+    // Initialize the database
+    initializeDatabase()
+      .then(() => {
+        console.log("Database initialized successfully");
+      })
+      .catch((error) => {
+        console.error("Error initializing database:", error);
+      });
+  }, []);ffect } from "react";
 import { TASK_STATUS, OBJECTIVE_STATUS } from "../../../lib/constants";
-import { createTask } from "../../../lib/supabase-api";
+import { createTask, initializeDatabase } from "../../../lib/supabase-api";
 import LoadingOverlay from "../../../components/LoadingOverlay";
 import { showError, showSuccess } from "../../../components/AlertProvider";
 
@@ -21,9 +31,19 @@ export default function NewTaskPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Component initialization
+  // Initialize database on component load
   useEffect(() => {
-    // Any initialization can go here
+    // Import dynamically to avoid breaking the client component
+    import("../../../lib/actions").then(({ initializeDatabase }) => {
+      // Initialize the database
+      initializeDatabase()
+        .then(() => {
+          console.log("Database initialized");
+        })
+        .catch((err) => {
+          console.error("Failed to initialize database:", err);
+        });
+    });
   }, []);
 
   const handleObjectiveChange = (
@@ -129,6 +149,18 @@ export default function NewTaskPage() {
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-md mx-auto">
           <div className="bg-white border border-gray-200 shadow-lg rounded-xl p-8">
+            {/* Database Auto-Setup Banner */}
+            <div className="mb-6 p-4 bg-green-100 border border-green-300 rounded-lg text-green-800 text-sm">
+              <h3 className="font-semibold mb-1">✅ Auto Database Setup</h3>
+              <p>
+                The objective functionality is now automatically set up. You can
+                add objectives to your tasks without manual database setup.
+              </p>
+              <p className="text-xs italic mt-1">
+                Note: For production use, you should still run proper
+                migrations.
+              </p>
+            </div>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <input
                 type="text"

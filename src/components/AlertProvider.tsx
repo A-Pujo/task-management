@@ -9,6 +9,10 @@ export function showError(msg: string) {
   toast.error(msg);
 }
 
+export function showWarning(msg: string) {
+  toast.warning(msg);
+}
+
 export default function AlertProvider() {
   return <ToastContainer position="top-right" autoClose={3000} />;
 }

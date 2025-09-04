@@ -15,8 +15,7 @@ import {
   addObjective,
   updateObjectiveStatus,
   deleteObjective,
-  initializeDatabase,
-} from "../../../lib/actions";
+} from "../../../lib/supabase-api";
 import LoadingOverlay from "../../../components/LoadingOverlay";
 import { showError, showSuccess } from "../../../components/AlertProvider";
 
@@ -172,18 +171,6 @@ export default function TaskViewPage() {
   useEffect(() => {
     setLoading(true);
     console.log("Fetching task details for ID:", id);
-
-    // Import dynamically to avoid breaking the client component
-    import("../../../lib/actions").then(({ initializeDatabase }) => {
-      // Initialize the database before fetching task details
-      initializeDatabase()
-        .then(() => {
-          console.log("Database initialized");
-        })
-        .catch((err) => {
-          console.error("Failed to initialize database:", err);
-        });
-    });
 
     fetchTaskDetail(String(id))
       .then((data: any) => {
@@ -358,26 +345,6 @@ export default function TaskViewPage() {
       {/* Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-6xl mx-auto">
-          {/* Database Auto-Setup Banner */}
-          <div className="mb-6 p-4 bg-green-100 border border-green-300 rounded-lg text-green-800">
-            <h3 className="font-semibold mb-2">✅ Auto Database Setup</h3>
-            <p>
-              The objective functionality is now automatically set up. The
-              system will:
-            </p>
-            <ul className="list-disc ml-5 mt-2 mb-2 text-sm">
-              <li>Create the Objective table if it doesn't exist</li>
-              <li>Allow you to add and manage objectives for this task</li>
-            </ul>
-            <p className="text-xs italic mt-1">
-              Note: For production use, you should still run proper migrations
-              with{" "}
-              <code className="bg-green-50 px-1 rounded">
-                npx prisma migrate dev
-              </code>
-            </p>
-          </div>
-
           <div className="flex flex-col md:flex-row gap-8">
             {/* Left: Main Info */}
             <div className="flex-1 flex flex-col gap-6">

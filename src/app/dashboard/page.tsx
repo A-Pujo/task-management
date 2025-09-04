@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { TASK_STATUS, Task } from "../../lib/constants";
-import { fetchTasks } from "../../lib/actions";
 import LoadingOverlay from "../../components/LoadingOverlay";
-import { showError } from "../../components/AlertProvider";
+import { showError, showWarning } from "../../components/AlertProvider";
+import { supabaseClient } from "../../lib/supabase-client-browser";
 import Card from "../../components/Card";
 import {
   Table,
@@ -17,8 +17,6 @@ import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 
 const DEFAULT_START = "2025-01-01";
 const DEFAULT_END = "2025-12-31";
-
-// ...existing code...
 
 function getStats(tasks: Task[], start: string, end: string) {
   const filtered = tasks.filter(
@@ -38,27 +36,81 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const pageSize = 5;
+  const [dbInitialized, setDbInitialized] = useState(true);
+
+  // Function to format tasks from the API response
+  const formatTasks = (data: any[]): Task[] => {
+    return data.map((task: any) => ({
+      id: task.id,
+      name: task.name,
+      inputDate: task.inputDate
+        ? typeof task.inputDate === "string"
+          ? task.inputDate.split("T")[0]
+          : new Date(task.inputDate).toISOString().split("T")[0]
+        : "",
+      deadline: task.deadline
+        ? typeof task.deadline === "string"
+          ? task.deadline.split("T")[0]
+          : new Date(task.deadline).toISOString().split("T")[0]
+        : "",
+      status: task.status as keyof typeof TASK_STATUS,
+      description: task.description || undefined,
+    }));
+  };
+
+  // Function to fetch tasks using client-side Supabase
+  const fetchTasksClientSide = async () => {
+    if (!supabaseClient) {
+      showError("Supabase client not initialized");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabaseClient.from("Task").select("*");
+
+      if (error) {
+        console.error("Supabase client error:", error);
+        setDbInitialized(false);
+
+        if (error.code === "42P01") {
+          showWarning("Database tables not found. Please run setup.");
+        } else {
+          showError(`Error: ${error.message}`);
+        }
+        return;
+      }
+
+      setDbInitialized(true);
+
+      if (!data || data.length === 0) {
+        setTasks([]);
+        return;
+      }
+
+      const formattedTasks = formatTasks(data);
+      setTasks(formattedTasks);
+    } catch (err: any) {
+      console.error("Client-side fetch error:", err);
+      setDbInitialized(false);
+
+      if (err.message?.includes("env")) {
+        showError(
+          "Database configuration error. Please check environment variables."
+        );
+      } else if (err.code === "42P01") {
+        showError("Database tables not found. Please run migrations.");
+      } else {
+        showError(`Failed to fetch tasks: ${err.message || "Unknown error"}`);
+      }
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
-    fetchTasks()
-      .then((data) => {
-        // Transform to match Task interface
-        const formattedTasks = data.map((task) => ({
-          id: task.id,
-          name: task.name,
-          inputDate: task.inputDate.toISOString().split("T")[0],
-          deadline: task.deadline.toISOString().split("T")[0],
-          status: task.status as keyof typeof TASK_STATUS,
-          description: task.description || undefined,
-        }));
-        setTasks(formattedTasks);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-        showError("Failed to fetch tasks");
-      });
+
+    // Fetch tasks using client-side approach
+    fetchTasksClientSide().finally(() => setLoading(false));
   }, []);
 
   const stats = getStats(tasks, start, end);
@@ -134,6 +186,50 @@ export default function DashboardPage() {
           New Task
         </Button>
       </div>
+
+      {/* Database Initialization Alert */}
+      {!dbInitialized && (
+        <div className="mb-4 p-4 bg-yellow-50 border border-yellow-300 rounded-lg shadow-sm flex items-start">
+          <div className="text-yellow-700 mr-3 flex-shrink-0 pt-0.5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div>
+            <h3 className="font-medium text-yellow-800">
+              Database Not Initialized
+            </h3>
+            <p className="text-sm text-yellow-700 mt-1">
+              Please initialize the database tables for this application to work
+              properly.
+            </p>
+            <div className="mt-2 flex space-x-3">
+              <Button
+                onClick={() => (window.location.href = "/setup")}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+              >
+                Go to Setup Page
+              </Button>
+              <Button
+                onClick={() => window.location.reload()}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm"
+              >
+                Refresh Page
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tasks Table */}
       <Table className="w-full border border-gray-200 rounded-xl overflow-hidden shadow-lg">
         <TableHead className="bg-gray-50 border-b border-gray-300">

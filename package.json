@@ -6,20 +6,22 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate": "bash ./scripts/run-migrations.sh",
+    "db:setup": "node ./scripts/create-tables.js",
+    "supabase:link": "supabase link --project-ref hogmghtjnlmzsmxcxbht",
+    "supabase:push": "supabase db push"
   },
   "dependencies": {
-    "@prisma/client": "^6.15.0",
     "@shadcn/ui": "^0.0.4",
-    "better-sqlite3": "^12.2.0",
+    "@supabase/supabase-js": "^2.57.0",
+    "dotenv": "^17.2.2",
     "lucide-react": "^0.542.0",
     "mysql2": "^3.14.4",
     "next": "^15.5.2",
-    "prisma": "^6.15.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "react-toastify": "^11.0.5",
-    "sqlite3": "^5.1.7"
+    "react-toastify": "^11.0.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -30,6 +32,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
+    "supabase": "^2.39.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
